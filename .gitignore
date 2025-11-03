@@ -67,4 +67,9 @@ $RECYCLE.BIN/
 
 # Project specific
 # Add any project-specific files to ignore below
+zig-windows-*
+zig.zip
+
+# Keep release binaries in version control
+# release-binaries/
 
