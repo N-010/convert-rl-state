@@ -56,7 +56,7 @@ impl Default for EState {
 }
 
 /// Winner snapshot for an epoch.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[repr(C)]
 pub struct WinnerInfo {
     pub winner_address: Id,

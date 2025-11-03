@@ -5,7 +5,7 @@ use crate::old_rl::OldRL;
 use std::fmt::{self, Display, Formatter};
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct NextEpochData {
     pub new_price: u64,
     pub schedule: u8,
@@ -13,7 +13,7 @@ pub struct NextEpochData {
 
 /// New Random Lottery contract state structure
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NewRL {
     /// Circular buffer storing the history of winners.
     /// Maximum capacity is defined by RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY.

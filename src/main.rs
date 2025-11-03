@@ -25,13 +25,6 @@ async fn read_contract_file<P: AsRef<Path>>(
     println!("ℹ️  Expected OldRL structure size: {} bytes", expected_size);
     println!("🔄 Deserializing OldRL structure...");
 
-    // Output first 32 bytes for debugging
-    print!("   First 32 bytes of file: ");
-    for byte in buffer.iter().take(32) {
-        print!("{:02X} ", byte);
-    }
-    println!();
-
     // Validate expected size
     let expected = std::mem::size_of::<OldRL>();
     if buffer.len() != expected {
@@ -80,6 +73,48 @@ async fn write_new_rl_to_file<P: AsRef<Path>>(
     println!("✓ File successfully written ({} bytes)", size);
 
     Ok(())
+}
+
+async fn read_new_rl_file<P: AsRef<Path>>(
+    path: P,
+) -> Result<Box<NewRL>, Box<dyn std::error::Error>> {
+    println!("📂 Opening NewRL file: {:?}", path.as_ref());
+
+    let mut file = File::open(path).await?;
+    let mut buffer = Vec::new();
+
+    println!("📖 Reading file contents...");
+    file.read_to_end(&mut buffer).await?;
+
+    let expected = std::mem::size_of::<NewRL>();
+    println!(
+        "✓ Read {} bytes (expected {} bytes)",
+        buffer.len(),
+        expected
+    );
+
+    if buffer.len() != expected {
+        return Err(format!(
+            "Expected size {} bytes does not match file size {} bytes",
+            expected,
+            buffer.len()
+        )
+        .into());
+    }
+
+    // Create uninitialized buffer for NewRL and copy bytes
+    let mut boxed: Box<NewRL> = unsafe { Box::new(std::mem::MaybeUninit::zeroed().assume_init()) };
+    unsafe {
+        std::ptr::copy_nonoverlapping(
+            buffer.as_ptr(),
+            boxed.as_mut() as *mut NewRL as *mut u8,
+            expected,
+        );
+    }
+
+    println!("✓ Byte-by-byte NewRL loading successful!\n");
+
+    Ok(boxed)
 }
 
 /// Prints program usage help
@@ -132,6 +167,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Save NewRL to binary file
     write_new_rl_to_file(output_file, &new_rl).await?;
     println!("\n✅ NewRL successfully saved to '{}'", output_file);
+
+    // Read back the saved NewRL for verification
+    println!("📂 Re-opening saved NewRL file for verification...");
+    let loaded_new = read_new_rl_file(output_file).await?;
+
+    // Compare structures
+    println!("🔍 Comparing saved NewRL structure with original...");
+    if new_rl == *loaded_new {
+        println!("✓ Verification successful: structures match!");
+    } else {
+        println!("❌ Verification failed: structures do not match.");
+        println!("--- ORIGINAL NewRL ---\n{:?}", new_rl);
+        println!("--- LOADED  NewRL ---\n{:?}", loaded_new);
+        std::process::exit(1);
+    }
+
     println!("\n✅ Conversion completed successfully!");
 
     Ok(())
