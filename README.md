@@ -10,12 +10,17 @@ This tool reads a binary state file in the old Random Lottery format and convert
 
 ### Option 1: Use Pre-built Binaries (Recommended for most users)
 
-Pre-built binaries are available in the `release-binaries/` directory:
+Download pre-built binaries produced by the CI workflow:
 
-- **Windows (x64):** `release-binaries/rlconverter-windows-x64.exe`
-- **Linux (x64):** `release-binaries/rlconverter-linux-x64`
+- GitHub Releases (recommended): open the Releases page of this repository on GitHub and download the latest release assets (look for the "Releases" section in the repository):
+  - Files:
+    - `rlconverter-windows-x64.exe` (Windows 10/11, x64)
+    - `rlconverter-linux-x64` (Linux x86_64; make it executable with `chmod +x`)
 
-See `release-binaries/README.md` for detailed instructions on using pre-built binaries.
+- Or from CI Artifacts (for non-tag builds): go to the Actions tab → select the "Build" workflow → open the latest successful run → download the artifact for your OS:
+  - Artifact names: `rlconverter-Windows-x64` and `rlconverter-Linux-x64`
+
+Note: If you're working from a local clone of this repository, you may also find pre-built binaries in `release-binaries/`.
 
 ### Option 2: Install Rust (only if you want to run from source)
 
@@ -126,3 +131,24 @@ Cargo will compile and run the binary in debug mode; for repeated or production 
 Expected size X bytes does not match file size Y bytes
 ```
 **Solution:** The input file may be corrupted or not in the correct OldRL format.
+
+## 📦 Dependencies
+
+This project uses the following Rust crates:
+- `tokio` - Asynchronous runtime
+- `bincode` - Binary serialization
+- `serde` - Serialization framework
+- `serde-big-array` - Support for large arrays in serde
+- `base64` - Base64 encoding/decoding
+
+## 🛠️ Development
+
+### Quick run (for development / testing)
+
+Run directly with Cargo:
+
+```bash
+cargo run -- contract0016.185 contract0016_new.185
+```
+
+This compiles and runs the project in debug mode.
