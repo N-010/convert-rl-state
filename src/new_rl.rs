@@ -3,12 +3,20 @@ use crate::common::{
 };
 use crate::old_rl::OldRL;
 use std::fmt::{self, Display, Formatter};
+use std::mem::MaybeUninit;
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NextEpochData {
     pub new_price: u64,
     pub schedule: u8,
+}
+
+impl Default for NextEpochData {
+    fn default() -> Self {
+        // Zero the entire structure, including padding bytes.
+        unsafe { MaybeUninit::<Self>::zeroed().assume_init() }
+    }
 }
 
 /// New Random Lottery contract state structure
@@ -71,51 +79,37 @@ pub struct NewRL {
 
 impl From<&OldRL> for NewRL {
     fn from(old: &OldRL) -> Self {
-        Self {
-            winners: old.winners,
-            players: old.players.players,
-            team_address: old.team_address,
-            owner_address: old.owner_address,
-            ticket_price: old.ticket_price,
-            winners_counter: old.winners_info_next_empty_index,
-            team_fee_percent: old.team_fee_percent,
-            distribution_fee_percent: old.distribution_fee_percent,
-            winner_fee_percent: old.winner_fee_percent,
-            burn_percent: old.burn_percent,
-            current_state: old.current_state,
-            next_epoch_data: NextEpochData::default(),
-            player_counter: 0,
-            last_draw_day: 0,
-            last_draw_hour: 0,
-            last_draw_date_stamp: 0,
-            schedule: 0,
-            draw_hour: 0,
-        }
+        let mut new_rl = unsafe { MaybeUninit::<NewRL>::zeroed().assume_init() };
+
+        new_rl.winners = old.winners;
+        new_rl.players = old.players.players;
+        new_rl.team_address = old.team_address;
+        new_rl.owner_address = old.owner_address;
+        new_rl.ticket_price = old.ticket_price;
+        new_rl.winners_counter = old.winners_info_next_empty_index;
+        new_rl.team_fee_percent = old.team_fee_percent;
+        new_rl.distribution_fee_percent = old.distribution_fee_percent;
+        new_rl.winner_fee_percent = old.winner_fee_percent;
+        new_rl.burn_percent = old.burn_percent;
+        new_rl.current_state = old.current_state;
+
+        new_rl.next_epoch_data = NextEpochData::default();
+        new_rl.player_counter = 0;
+        new_rl.last_draw_day = 0;
+        new_rl.last_draw_hour = 0;
+        new_rl.last_draw_date_stamp = 0;
+        new_rl.schedule = 0;
+        new_rl.draw_hour = 0;
+
+        new_rl
     }
 }
 
 impl Default for NewRL {
     fn default() -> Self {
-        Self {
-            winners: [WinnerInfo::default(); RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY],
-            players: [Id::default(); RL_MAX_NUMBER_OF_PLAYERS],
-            team_address: Id::default(),
-            owner_address: Id::default(),
-            next_epoch_data: NextEpochData::default(),
-            ticket_price: 0,
-            player_counter: 0,
-            winners_counter: 0,
-            last_draw_day: 0,
-            last_draw_hour: 0,
-            last_draw_date_stamp: 0,
-            team_fee_percent: 0,
-            distribution_fee_percent: 0,
-            winner_fee_percent: 0,
-            burn_percent: 0,
-            schedule: 0,
-            draw_hour: 0,
-            current_state: EState::Locked,
-        }
+        let mut new_rl = unsafe { MaybeUninit::<NewRL>::zeroed().assume_init() };
+        new_rl.current_state = EState::Locked;
+        new_rl
     }
 }
 
