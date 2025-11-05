@@ -1,5 +1,4 @@
 use base64::Engine;
-use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 
 /// Maximum number of players in the lottery.
@@ -9,7 +8,7 @@ pub const RL_MAX_NUMBER_OF_PLAYERS: usize = 1024;
 pub const RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY: usize = 1024;
 
 /// Qubic ID (address) representation - 256-bit value
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Id {
     pub data: [u8; 32],
@@ -42,7 +41,7 @@ impl Default for Id {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum EState {
     Selling = 0,
@@ -52,26 +51,5 @@ pub enum EState {
 impl Default for EState {
     fn default() -> Self {
         EState::Locked
-    }
-}
-
-/// Winner snapshot for an epoch.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[repr(C)]
-pub struct WinnerInfo {
-    pub winner_address: Id,
-    pub revenue: u64,
-    pub epoch: u16,
-    pub tick: u32,
-}
-
-impl Default for WinnerInfo {
-    fn default() -> Self {
-        Self {
-            winner_address: Id::zero(),
-            revenue: 0,
-            epoch: 0,
-            tick: 0,
-        }
     }
 }

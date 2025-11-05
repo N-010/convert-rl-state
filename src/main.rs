@@ -171,6 +171,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Read back the saved NewRL for verification
     println!("📂 Re-opening saved NewRL file for verification...");
     let loaded_new = read_new_rl_file(output_file).await?;
+    println!("{}", loaded_new);
 
     // Compare structures
     println!("🔍 Comparing saved NewRL structure with original...");

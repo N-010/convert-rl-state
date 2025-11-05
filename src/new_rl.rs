@@ -1,9 +1,29 @@
-use crate::common::{
-    EState, Id, WinnerInfo, RL_MAX_NUMBER_OF_PLAYERS, RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY,
-};
+use crate::common::{EState, Id, RL_MAX_NUMBER_OF_PLAYERS, RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY};
 use crate::old_rl::OldRL;
 use std::fmt::{self, Display, Formatter};
 use std::mem::MaybeUninit;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct WinnerInfoNew {
+    pub winner_address: Id,
+    pub revenue: u64,
+    pub tick: u32,
+    pub epoch: u16,
+    pub day_of_week: u8,
+}
+
+impl Default for WinnerInfoNew {
+    fn default() -> Self {
+        Self {
+            winner_address: Id::zero(),
+            revenue: 0,
+            epoch: 0,
+            tick: 0,
+            day_of_week: 0,
+        }
+    }
+}
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,7 +45,7 @@ impl Default for NextEpochData {
 pub struct NewRL {
     /// Circular buffer storing the history of winners.
     /// Maximum capacity is defined by RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY.
-    pub winners: [WinnerInfo; RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY],
+    pub winners: [WinnerInfoNew; RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY],
 
     /// Set of players participating in the current lottery epoch.
     /// Maximum capacity is defined by RL_MAX_NUMBER_OF_PLAYERS.
@@ -81,7 +101,20 @@ impl From<&OldRL> for NewRL {
     fn from(old: &OldRL) -> Self {
         let mut new_rl = unsafe { MaybeUninit::<NewRL>::zeroed().assume_init() };
 
-        new_rl.winners = old.winners;
+        new_rl.winners = old
+            .winners
+            .iter()
+            .map(|w| WinnerInfoNew {
+                winner_address: w.winner_address,
+                revenue: w.revenue,
+                epoch: w.epoch,
+                tick: w.tick,
+                day_of_week: 0, // Default value for new field
+            })
+            .collect::<Vec<WinnerInfoNew>>()
+            .try_into()
+            .unwrap();
+
         new_rl.players = old.players.players;
         new_rl.team_address = old.team_address;
         new_rl.owner_address = old.owner_address;
@@ -170,6 +203,7 @@ impl Display for NewRL {
                 writeln!(f, "    {}. Address: {}", i + 1, winner.winner_address)?;
                 writeln!(f, "       Prize:   {} units", winner.revenue)?;
                 writeln!(f, "       Epoch: {}, Tick: {}", winner.epoch, winner.tick)?;
+                writeln!(f, "       Day of week: {}", winner.day_of_week)?;
             }
         }
 

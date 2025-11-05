@@ -8,10 +8,29 @@
  * - Distributes fees (team, distribution, burn, winner).
  * - Records winners' history in a ring-like buffer.
  */
-use crate::common::{
-    EState, Id, WinnerInfo, RL_MAX_NUMBER_OF_PLAYERS, RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY,
-};
+use crate::common::{EState, Id, RL_MAX_NUMBER_OF_PLAYERS, RL_MAX_NUMBER_OF_WINNERS_IN_HISTORY};
 use std::fmt::{self, Display, Formatter};
+
+/// Winner snapshot for an epoch.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct WinnerInfo {
+    pub winner_address: Id,
+    pub revenue: u64,
+    pub epoch: u16,
+    pub tick: u32,
+}
+
+impl Default for WinnerInfo {
+    fn default() -> Self {
+        Self {
+            winner_address: Id::zero(),
+            revenue: 0,
+            epoch: 0,
+            tick: 0,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
